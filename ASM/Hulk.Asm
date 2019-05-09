@@ -141,28 +141,36 @@ LOCAL	ps:PAINTSTRUCT
 		.if	wParam == Animate
 			invoke BitBlt,backDC,0,0,FrameSizeX,FrameSizeY,imageDC,SourceX,SourceY,SRCCOPY
 			
-			;We have to adjust the source coordinates for blitting
-			;the sprite sheet image to the back buffer DC (then bring it forward during WM_PAINT)
-			
 			mov	eax,SourceX
 			add	eax,FrameSizeX
 			mov	SourceX,eax
 			.if	eax > 400
-				mov	eax,1					
+				xor eax,eax
 				mov	SourceX,eax
-				mov	eax,SourceY
-				add	eax,102
 			.endif
 			
 			invoke	MoveWindow,hWnd,LocationX,LocationY,FrameSizeX,FrameSizeY,FALSE
+
+			;Move on X
 			mov		eax,LocationX
-			add		eax,6
+			add		eax,8
 			mov		LocationX,eax
 			mov		ecx,DesktopX
 			.if		eax >= ecx
-				mov	eax,0
+				xor	eax,eax
 				mov	LocationX,eax
 			.endif
+
+			;Move on Y
+			;mov		eax,LocationY
+			;sub		eax,8
+			;mov		LocationY,eax
+			;.if		eax < 50
+				;mov	eax,DesktopY
+				;sub	eax,110
+				;mov	LocationY,eax
+			;.endif
+
 			invoke InvalidateRect,hWnd,0,FALSE
 		.endif
 		
@@ -194,9 +202,6 @@ LOCAL	ps:PAINTSTRUCT
 		RGB	80,128,208
 		invoke	FillRect,hWnd,ADDR ourArea,eax
 
-		;2 backbuffer DC's
-		;one for drawing on and one for keeping original image
-
 		invoke	GetSystemMetrics,SM_CXSCREEN
 		mov DesktopX,eax
 		invoke	GetSystemMetrics,SM_CYSCREEN
@@ -204,7 +209,7 @@ LOCAL	ps:PAINTSTRUCT
 		
 		mov	LocationX,0
 		mov	eax,DesktopY
-		sub	eax,110					;run along the top of the system tray
+		sub	eax,110
 		mov	LocationY,eax
 		
 		invoke	GetDesktopWindow
@@ -236,8 +241,6 @@ LOCAL	ps:PAINTSTRUCT
 
 		invoke BitBlt,backDC,ourArea.left,ourArea.top,FrameSizeX,FrameSizeY,imageDC,SourceX,SourceY,SRCCOPY
 
-		;timer to change the animation
-		; 22 = 45 times per second
 		invoke SetTimer,hWnd,Animate,80,0
 	.ELSE
 		invoke DefWindowProc,hWnd,uMsg,wParam,lParam		
